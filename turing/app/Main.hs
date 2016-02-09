@@ -13,8 +13,7 @@ main = do
     content <- readFile (Prelude.head args)
     putStr content
     putStrLn "-----"
-    putStrLn . show $ (decode $ B.pack content :: Maybe Machine)
-    putStrLn . B.unpack $ encode test
+    putStrLn . show $ (decode $ B.pack content :: Maybe Transition)
 
 test = Machine
     { name = "test_unary_sub"
