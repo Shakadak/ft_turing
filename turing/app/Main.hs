@@ -11,17 +11,5 @@ main :: IO ()
 main = do
     args <- getArgs
     content <- readFile (Prelude.head args)
-    putStr content
-    putStrLn "-----"
-    putStrLn . show $ (decode $ B.pack content :: Maybe Transition)
+    putStrLn . show $ (eitherDecode $ B.pack content :: Either String Machine)
 
-test = Machine
-    { name = "test_unary_sub"
-    , alphabet = ['1', '.', '-', '=']
-    , blank = '.'
-    , states = ["scanright", "eraseone", "subone", "skip", "HALT" ]
-    , initial = "scanright"
-    , finals = ["HALT"]
-    , transitions =
-        [ ("scanright", [Transition { read = '.', to_state = "HALT", write = '.', action = "RIGHT" }])]
-    }

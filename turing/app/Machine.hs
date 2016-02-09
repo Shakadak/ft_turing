@@ -12,7 +12,7 @@ data Machine = Machine
     , states        :: [String]
     , initial       :: String
     , finals        :: [String]
-    , transitions  :: [(String, [Transition])]
+    , transitions   :: [(String, [Transition])]
     } deriving (Show)
 
 data Transition = Transition
@@ -28,4 +28,15 @@ instance FromJSON Transition where
                            v .: "to_state" <*>
                            v .: "write"    <*>
                            v .: "action"
+    parseJSON _          = empty
+
+instance FromJSON Machine where
+    parseJSON (Object v) = Machine          <$>
+                           v .: "name"      <*>
+                           v .: "alphabet"  <*>
+                           v .: "blank"     <*>
+                           v .: "states"    <*>
+                           v .: "initial"   <*>
+                           v .: "finals"    <*>
+                           v .: "transitions"
     parseJSON _          = empty
