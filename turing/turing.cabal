@@ -22,6 +22,7 @@ library
 executable turing-exe
   hs-source-dirs:      app
   main-is:             Main.hs
+  other-modules:       Machine
   ghc-options:         -threaded -rtsopts -with-rtsopts=-N
   build-depends:       base
                      , aeson

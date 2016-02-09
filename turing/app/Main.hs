@@ -1,6 +1,11 @@
 module Main where
 
+import System.Environment
 import Lib
+import Machine
 
 main :: IO ()
-main = someFunc
+main = do
+    args <- getArgs
+    content <- readFile (head args)
+    putStr content

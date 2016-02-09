@@ -1,4 +1,9 @@
+{-# LANGUAGE DeriveDataTypeable #-}
+
 module Machine where
+
+import Data.Typeable
+import Data.Data
 
 data Machine = Machine
     { name          :: String
@@ -8,13 +13,13 @@ data Machine = Machine
     , initial       :: String
     , finals        :: [String]
     , transistions  :: [Transition]
-    } deriving Show
+    } deriving (Data, Typeable, Show)
 
 data Transition = Transition
     { read      :: Char
     , to_state  :: String
     , write     :: Char
     , action    :: Action
-    } deriving Show
+    } deriving (Data, Typeable, Show)
 
-data Action = Left | Right
+data Action = LEFT | RIGHT deriving (Data, Typeable, Show)
