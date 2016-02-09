@@ -2,8 +2,8 @@
 
 module Machine where
 
-import GHC.Generics
 import Data.Aeson
+import Control.Applicative
 
 data Machine = Machine
     { name          :: String
@@ -23,6 +23,9 @@ data Transition = Transition
     } deriving (Show)
 
 instance FromJSON Transition where
-    parseJSON (Object v) = Transition
-
-instance FromJSON Machine
+    parseJSON (Object v) = Transition      <$>
+                           v .: "read"     <*>
+                           v .: "to_state" <*>
+                           v .: "write"    <*>
+                           v .: "action"
+    parseJSON _          = empty
