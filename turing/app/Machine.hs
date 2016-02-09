@@ -1,10 +1,9 @@
-{-# LANGUAGE DeriveDataTypeable #-}
 {-# LANGUAGE OverloadedStrings #-}
 
 module Machine where
 
-import Data.Typeable
-import Data.Data
+import GHC.Generics
+import Data.Aeson
 
 data Machine = Machine
     { name          :: String
@@ -13,14 +12,17 @@ data Machine = Machine
     , states        :: [String]
     , initial       :: String
     , finals        :: [String]
-    , transistions  :: [Transition]
-    } deriving (Data, Typeable, Show)
+    , transitions  :: [(String, [Transition])]
+    } deriving (Show)
 
 data Transition = Transition
     { read      :: Char
     , to_state  :: String
     , write     :: Char
-    , action    :: Action
-    } deriving (Data, Typeable, Show)
+    , action    :: String
+    } deriving (Show)
 
-data Action = LEFT | RIGHT deriving (Data, Typeable, Show)
+instance FromJSON Transition where
+    parseJSON (Object v) = Transition
+
+instance FromJSON Machine
