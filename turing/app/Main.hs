@@ -11,5 +11,5 @@ main :: IO ()
 main = do
     args <- getArgs
     content <- readFile (Prelude.head args)
-    putStrLn . show $ (eitherDecode $ B.pack content :: Either String Machine)
+    putStrLn . show $ (eitherDecode' $ B.pack content :: Either String Machine)
 
