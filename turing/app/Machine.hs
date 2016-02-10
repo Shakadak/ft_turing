@@ -7,7 +7,7 @@ import qualified Data.HashMap.Strict as HM (lookup, toList)
 import Data.Aeson
 import Data.Aeson.Types
 import Data.Maybe
-import Data.Text (unpack)
+import Data.Text (Text, unpack)
 import Control.Applicative
 import Control.Arrow
 
@@ -18,7 +18,7 @@ data Machine = Machine
     , states        :: [String]
     , initial       :: String
     , finals        :: [String]
-    , transitions   :: [(String, [Transition])]{--}
+    , transitions   :: [(String, [Transition])]
     } deriving (Show)
 
 data Transition = Transition
@@ -39,12 +39,12 @@ instance FromJSON Transition where
 instance FromJSON Machine where
     parseJSON (Object v) = Machine          <$>
                            v .: "name"      <*>
-                           withArray "alphabet" (mapM parseJSON . V.toList :: Array -> Parser [Char]) (fromJust $ HM.lookup "alphabet" v)  <*>
+                           lookupAndParse (withArray "alphabet" (mapM parseJSON . V.toList :: Array -> Parser [Char])) "alphabet" v  <*>
                            v .: "blank"     <*>
                            v .: "states"    <*>
                            v .: "initial"   <*>
                            v .: "finals"    <*>
-                           withObject "transitions" (mapM parseTransition . extractTransition) (fromJust $ HM.lookup "transitions" v) {--}
+                           lookupAndParse (withObject "transitions" (mapM parseTransition . extractTransition)) "transitions" v
     parseJSON _          = empty
 
 parseTransition :: (String, Value) -> Parser (String, [Transition])
@@ -52,3 +52,8 @@ parseTransition (name, arr) = withArray name (mapM parseJSON . V.toList :: Array
 
 extractTransition :: Object -> [(String, Value)]
 extractTransition = map (first unpack) . HM.toList
+
+lookupAndParse :: (Value -> Parser a) -> Text -> Object -> Parser a
+lookupAndParse f key obj = case HM.lookup key obj of
+              Nothing   -> fail $ "key " ++ show key ++ " not present"
+              Just val  -> f val
