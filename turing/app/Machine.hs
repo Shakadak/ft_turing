@@ -39,7 +39,7 @@ instance FromJSON Transition where
 instance FromJSON Machine where
     parseJSON (Object v) = Machine          <$>
                            v .: "name"      <*>
-                           lookupAndParse (withArray "alphabet" (mapM parseJSON . V.toList :: Array -> Parser [Char])) "alphabet" v  <*>
+                           lookupAndParse (withArray "alphabet" (mapM parseJSON . V.toList)) "alphabet" v  <*>
                            v .: "blank"     <*>
                            v .: "states"    <*>
                            v .: "initial"   <*>
@@ -48,7 +48,8 @@ instance FromJSON Machine where
     parseJSON _          = empty
 
 parseTransition :: (String, Value) -> Parser (String, [Transition])
-parseTransition (name, arr) = withArray name (mapM parseJSON . V.toList :: Array -> Parser [Transition]) arr >>= (\xs -> return (name, xs))
+parseTransition (name, arr) = go arr >>= (\xs -> return (name, xs))
+    where go = withArray name (mapM parseJSON . V.toList)
 
 extractTransition :: Object -> [(String, Value)]
 extractTransition = map (first unpack) . HM.toList
