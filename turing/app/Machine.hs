@@ -7,9 +7,12 @@ import qualified Data.HashMap.Strict as HM (lookup, toList)
 import Data.Aeson
 import Data.Aeson.Types
 import Data.Maybe
+import Data.List
 import Data.Text (Text, unpack)
 import Control.Applicative
 import Control.Arrow
+
+-- Data definition
 
 data Machine = Machine
     { name          :: String
@@ -27,6 +30,8 @@ data Transition = Transition
     , write     :: Char
     , action    :: String
     } deriving (Show)
+
+-- Parsing
 
 instance FromJSON Transition where
     parseJSON (Object v) = Transition      <$>
@@ -58,3 +63,17 @@ lookupAndParse :: (Value -> Parser a) -> Text -> Object -> Parser a
 lookupAndParse f key obj = case HM.lookup key obj of
               Nothing   -> fail $ "key " ++ show key ++ " not present"
               Just val  -> f val
+
+-- Verification
+
+checkMachine :: Machine -> Bool
+checkMachine m = (blank m) `elem` (alphabet m)
+              && (initial m) `elem` (states m)
+              && null ((finals m) \\ (states m))
+              && and (map (all (checkTransition m) . snd) (transitions m))
+
+checkTransition :: Machine -> Transition -> Bool
+checkTransition m t = (Machine.read t) `elem` (alphabet m)
+                   && (to_state t) `elem` (states m)
+                   && (write t) `elem` (alphabet m)
+                   && (action t) `elem` ["LEFT", "RIGHT"]
