@@ -2,7 +2,7 @@ module Main where
 
 import Prelude hiding (read)
 import System.Environment
-import Lib
+import Tape
 import Machine
 import qualified Data.ByteString.Lazy.Char8 as B
 import Data.Aeson
@@ -26,3 +26,6 @@ usage = "usage: ft_turing [-h] jsonfile input\n\
 \  input                 input of the machine\n\
 \optional arguments:\n\
 \  -h, --help            show this help message and exit\n"
+
+test :: Tape Int
+test = lift 0 [1]
