@@ -84,3 +84,6 @@ checkTransition :: Machine -> Transition -> Bool
 checkTransition m t = (Machine.read t) `elem` (alphabet m)
                    && (to_state t) `elem` (states m)
                    && (write t) `elem` (alphabet m)
+
+checkInput :: Machine -> String -> Bool
+checkInput m = all (`elem` (alphabet m))
