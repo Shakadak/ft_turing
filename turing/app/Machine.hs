@@ -28,8 +28,11 @@ data Transition = Transition
     { read      :: Char
     , to_state  :: String
     , write     :: Char
-    , action    :: String
+    , action    :: Action
     } deriving (Show)
+
+data Action = LEFT | RIGHT
+    deriving Show
 
 -- Parsing
 
@@ -38,7 +41,7 @@ instance FromJSON Transition where
                            v .: "read"     <*>
                            v .: "to_state" <*>
                            v .: "write"    <*>
-                           v .: "action"
+                           lookupAndParse (withText "action" parseAction) "action" v
     parseJSON _          = empty
 
 instance FromJSON Machine where
@@ -59,6 +62,11 @@ parseTransition (name, arr) = go arr >>= (\xs -> return (name, xs))
 extractTransition :: Object -> [(String, Value)]
 extractTransition = map (first unpack) . HM.toList
 
+parseAction :: Text -> Parser Action
+parseAction "LEFT"  = pure LEFT
+parseAction "RIGHT" = pure RIGHT
+parseAction txt     = fail $ "key \"action\" expected either \"LEFT\" or \"RIGHT\" value instead of " ++ (unpack txt)
+
 lookupAndParse :: (Value -> Parser a) -> Text -> Object -> Parser a
 lookupAndParse f key obj = case HM.lookup key obj of
               Nothing   -> fail $ "key " ++ show key ++ " not present"
@@ -76,4 +84,3 @@ checkTransition :: Machine -> Transition -> Bool
 checkTransition m t = (Machine.read t) `elem` (alphabet m)
                    && (to_state t) `elem` (states m)
                    && (write t) `elem` (alphabet m)
-                   && (action t) `elem` ["LEFT", "RIGHT"]
