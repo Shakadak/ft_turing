@@ -21,11 +21,19 @@ import qualified Tape as T
 evaluateAtHead :: (Machine, T.Tape Char) -> Either String (Machine, T.Tape Char)
 evaluateAtHead (m, t) = do
     trs <- maybeToEither "Could not find initial state in list of transitions." $ lookup (initial m) (transitions m)
-    tr  <- maybeToEither ("Could not find matching transition for head: " ++ (show $ T.read t) ++ " and state: " ++ (initial m) ++ ".") $ find ((T.read t ==) . read) trs
+    tr  <- maybeToEither ("Could not find matching transition for head: " ++ show (T.read t) ++ " and state: " ++ initial m ++ ".") $ find ((T.read t ==) . read) trs
     let m' = m {initial = to_state tr}
         t' = T.write (write tr) t
-    return (m', if (action tr) == LEFT then T.left t' else T.right t')
+    return (m', if action tr == LEFT then T.left t' else T.right t')
 
+hasHalted :: Machine -> Bool
+hasHalted m = initial m `elem` finals m
+
+loop :: Either String (Machine, T.Tape Char) -> Either String (Machine, T.Tape Char)
+loop res@(Right(m, _))
+    | hasHalted m = res
+    | otherwise   = loop . evaluateAtHead =<< res
+loop res = res
 
 -- Data definition
 
@@ -80,7 +88,7 @@ extractTransition = map (first unpack) . HM.toList
 parseAction :: Text -> Parser Action
 parseAction "LEFT"  = pure LEFT
 parseAction "RIGHT" = pure RIGHT
-parseAction txt     = fail $ "key \"action\" expected either \"LEFT\" or \"RIGHT\" value instead of " ++ (unpack txt)
+parseAction txt     = fail $ "key \"action\" expected either \"LEFT\" or \"RIGHT\" value instead of " ++ unpack txt
 
 lookupAndParse :: (Value -> Parser a) -> Text -> Object -> Parser a
 lookupAndParse f key obj = case HM.lookup key obj of
@@ -93,7 +101,7 @@ checkMachine :: Machine -> Bool
 checkMachine m = (blank m) `elem` (alphabet m)
               && (initial m) `elem` (states m)
               && null ((finals m) \\ (states m))
-              && and (map (all (checkTransition m) . snd) (transitions m))
+              && all (all (checkTransition m) . snd) (transitions m)
 
 checkTransition :: Machine -> Transition -> Bool
 checkTransition m t = (Machine.read t) `elem` (alphabet m)
@@ -101,4 +109,4 @@ checkTransition m t = (Machine.read t) `elem` (alphabet m)
                    && (write t) `elem` (alphabet m)
 
 checkInput :: Machine -> String -> Bool
-checkInput m = all (`elem` (alphabet m))
+checkInput m = all (`elem` alphabet m)

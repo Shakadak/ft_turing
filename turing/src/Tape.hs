@@ -3,6 +3,11 @@ import Prelude hiding (read)
 
 data Tape a = Tape [a] a [a]
 
+instance Show a => Show (Tape a) where
+    show (Tape ls h rs) = show (l ++ h : r)
+        where l = reverse $ take 10 ls
+              r = take 10 rs
+
 left, right :: Tape a -> Tape a
 left (Tape (l:ls) h rs)  = Tape ls l (h:rs)
 right (Tape ls h (r:rs)) = Tape (h:ls) r rs

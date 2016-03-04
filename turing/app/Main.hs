@@ -13,19 +13,20 @@ main = do
     if length args /= 2
        then putStr usage
        else do
-           content <- readFile (args!!0)
+           content <- readFile (head args)
            let input = args!!1
-           let machine = (eitherDecode' $ B.pack content :: Either String Machine)
-           putStrLn . show $ machine
-           putStrLn . show $ checkMachine <$> machine
-           putStrLn . show $ checkInput <$> machine <*> pure input
+           let res = do machine <- eitherDecode' $ B.pack content :: Either String Machine
+                        if not $ checkMachine machine
+                           then Left "Invalid machine description"
+                           else if not $ checkInput machine input
+                           then Left "Invalid input compared to machine."
+                           else loop $ pure (machine, lift (blank machine) input)
+           either putStrLn (print . snd) res
 
 usage = "usage: ft_turing [-h] jsonfile input\n\
 \positional arguments:\n\
-\  jsonfile              json description of the machine\n\n\
+\  jsonfile              json description of the machine\n\
+\\n\
 \  input                 input of the machine\n\
 \optional arguments:\n\
 \  -h, --help            show this help message and exit\n"
-
-test :: Tape Int
-test = lift 0 [1]
