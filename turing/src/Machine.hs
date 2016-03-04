@@ -2,6 +2,7 @@
 
 module Machine where
 
+import Prelude hiding (read)
 import qualified Data.Vector as V (toList)
 import qualified Data.HashMap.Strict as HM (lookup, toList)
 import Data.Aeson
@@ -10,7 +11,21 @@ import Data.Maybe
 import Data.List
 import Data.Text (Text, unpack)
 import Control.Applicative
-import Control.Arrow
+import Control.Arrow (first)
+import Utilities
+
+import qualified Tape as T
+
+-- Data manipulation
+
+evaluateAtHead :: (Machine, T.Tape Char) -> Either String (Machine, T.Tape Char)
+evaluateAtHead (m, t) = do
+    trs <- maybeToEither "Could not find initial state in list of transitions." $ lookup (initial m) (transitions m)
+    tr  <- maybeToEither ("Could not find matching transition for head: " ++ (show $ T.read t) ++ " and state: " ++ (initial m) ++ ".") $ find ((T.read t ==) . read) trs
+    let m' = m {initial = to_state tr}
+        t' = T.write (write tr) t
+    return (m', if (action tr) == LEFT then T.left t' else T.right t')
+
 
 -- Data definition
 
@@ -32,7 +47,7 @@ data Transition = Transition
     } deriving (Show)
 
 data Action = LEFT | RIGHT
-    deriving Show
+    deriving (Show, Eq)
 
 -- Parsing
 
