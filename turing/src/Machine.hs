@@ -29,7 +29,7 @@ evaluateAtHead (m, tape) = do
 applyTransition :: Transition -> Tape Char -> Tape Char
 applyTransition t = moveHead t . Tape.write (Machine.write t)
 
-moveHead :: Transition -> Tape Char -> Tape Char
+moveHead :: Transition -> Tape a -> Tape a
 moveHead Transition {action = LEFT} = left
 moveHead Transition {action = RIGHT} = right
 
