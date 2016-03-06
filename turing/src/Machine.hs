@@ -14,24 +14,29 @@ import Control.Applicative
 import Control.Arrow (first)
 import Utilities
 
-import qualified Tape as T
+import Tape
 
 -- Data manipulation
 
-evaluateAtHead :: (Machine, T.Tape Char) -> Either String (Machine, T.Tape Char)
+evaluateAtHead :: (Machine, Tape Char) -> Either String (Machine, Tape Char)
 evaluateAtHead (m, tape) = do
     trs <- getTransitionsFromState m
     tr  <- getTransitionFromHead m trs tape
-    let m' = m {initial = to_state tr}
-        t' = T.write (write tr) tape
-    return (m', if action tr == LEFT then T.left t' else T.right t')
+    return (m {initial = to_state tr}, applyTransition tr tape)
         where getTransitionsFromState machine = maybeToEither "Could not find initial state in list of transitions." $ lookup (initial machine) (transitions machine)
-              getTransitionFromHead machine transitions tape = maybeToEither ("Could not find matching transition for head: " ++ show (T.read tape) ++ " and state: " ++ initial machine ++ ".") $ find ((T.read tape ==) . read) transitions
+              getTransitionFromHead machine transitions tape = maybeToEither ("Could not find matching transition for head: " ++ show (Tape.read tape) ++ " and state: " ++ initial machine ++ ".") $ find ((Tape.read tape ==) . Machine.read) transitions
+
+applyTransition :: Transition -> Tape Char -> Tape Char
+applyTransition t = moveHead t . Tape.write (Machine.write t)
+
+moveHead :: Transition -> Tape Char -> Tape Char
+moveHead Transition {action = LEFT} = left
+moveHead Transition {action = RIGHT} = right
 
 hasHalted :: Machine -> Bool
 hasHalted m = initial m `elem` finals m
 
-loop :: Either String (Machine, T.Tape Char) -> Either String (Machine, T.Tape Char)
+loop :: Either String (Machine, Tape Char) -> Either String (Machine, Tape Char)
 loop res@(Right(m, _))
     | hasHalted m = res
     | otherwise   = loop . evaluateAtHead =<< res
@@ -108,7 +113,7 @@ checkMachine m = (blank m) `elem` (alphabet m)
 checkTransition :: Machine -> Transition -> Bool
 checkTransition m t = (Machine.read t) `elem` (alphabet m)
                    && (to_state t) `elem` (states m)
-                   && (write t) `elem` (alphabet m)
+                   && (Machine.write t) `elem` (alphabet m)
 
 checkInput :: Machine -> String -> Bool
 checkInput m = all (`elem` alphabet m)

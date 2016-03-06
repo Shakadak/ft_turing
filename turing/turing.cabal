@@ -17,6 +17,7 @@ library
   hs-source-dirs:      src
   exposed-modules:     Tape
                      , Machine
+  other-modules:       Utilities
   build-depends:       base >= 4.7 && < 5
                      , vector
                      , unordered-containers
