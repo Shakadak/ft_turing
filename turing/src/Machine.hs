@@ -105,15 +105,15 @@ lookupAndParse f key obj = case HM.lookup key obj of
 -- Verification
 
 checkMachine :: Machine -> Bool
-checkMachine m = (blank m) `elem` (alphabet m)
-              && (initial m) `elem` (states m)
-              && null ((finals m) \\ (states m))
-              && all (all (checkTransition m) . snd) (transitions m)
+checkMachine m = blank m `elem` alphabet m
+              && initial m `elem` states m
+              && null (finals m \\ states m)
+              && all (\(s, ts) -> s `elem` states m && all (checkTransition m) ts) (transitions m)
 
 checkTransition :: Machine -> Transition -> Bool
-checkTransition m t = (Machine.read t) `elem` (alphabet m)
-                   && (to_state t) `elem` (states m)
-                   && (Machine.write t) `elem` (alphabet m)
+checkTransition m t = Machine.read t  `elem` alphabet m
+                   && to_state t      `elem` states m
+                   && Machine.write t `elem` alphabet m
 
 checkInput :: Machine -> String -> Bool
 checkInput m = all (`elem` alphabet m)
