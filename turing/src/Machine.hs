@@ -19,12 +19,14 @@ import qualified Tape as T
 -- Data manipulation
 
 evaluateAtHead :: (Machine, T.Tape Char) -> Either String (Machine, T.Tape Char)
-evaluateAtHead (m, t) = do
-    trs <- maybeToEither "Could not find initial state in list of transitions." $ lookup (initial m) (transitions m)
-    tr  <- maybeToEither ("Could not find matching transition for head: " ++ show (T.read t) ++ " and state: " ++ initial m ++ ".") $ find ((T.read t ==) . read) trs
+evaluateAtHead (m, tape) = do
+    trs <- getTransitionsFromState m
+    tr  <- getTransitionFromHead m trs tape
     let m' = m {initial = to_state tr}
-        t' = T.write (write tr) t
+        t' = T.write (write tr) tape
     return (m', if action tr == LEFT then T.left t' else T.right t')
+        where getTransitionsFromState machine = maybeToEither "Could not find initial state in list of transitions." $ lookup (initial machine) (transitions machine)
+              getTransitionFromHead machine transitions tape = maybeToEither ("Could not find matching transition for head: " ++ show (T.read tape) ++ " and state: " ++ initial machine ++ ".") $ find ((T.read tape ==) . read) transitions
 
 hasHalted :: Machine -> Bool
 hasHalted m = initial m `elem` finals m
