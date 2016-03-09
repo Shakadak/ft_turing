@@ -2,16 +2,17 @@
 
 module Machine where
 
-import Prelude hiding (read)
+import Prelude hiding (read, head)
 import qualified Data.Vector as V (toList)
 import qualified Data.HashMap.Strict as HM (lookup, toList)
 import Data.Aeson
 import Data.Aeson.Types
 import Data.Maybe
-import Data.List
+import Data.List hiding (head)
 import Data.Text (Text, unpack)
 import Control.Applicative
 import Control.Arrow (first)
+import Control.Monad
 import Utilities
 
 import Tape
@@ -20,18 +21,20 @@ import Tape
 
 evaluateAtHead :: (Machine, Tape Char) -> Either String (Machine, Tape Char)
 evaluateAtHead (m, tape) = do
-    trs <- getTransitionsFromState m
-    tr  <- getTransitionFromHead m trs tape
-    return (m {initial = to_state tr}, applyTransition tr tape)
-        where getTransitionsFromState machine = maybeToEither "Could not find initial state in list of transitions." $ lookup (initial machine) (transitions machine)
-              getTransitionFromHead machine transitions tape = maybeToEither ("Could not find matching transition for head: " ++ show (Tape.read tape) ++ " and state: " ++ initial machine ++ ".") $ find ((Tape.read tape ==) . Machine.read) transitions
+    (newState, symbol, action)  <- getTransition m (head tape)
+    return (m {initial = newState}, applyTransition symbol action tape)
+        where getTransition machine symbol = maybeToEither ("Could not find matching transition for the pair (" ++ initial machine ++ ", " ++ [symbol] ++ ").") $ lookup (initial machine, symbol) (transitions machine)
+{-
+showTapeMachine :: (Machine, Tape Char) -> String
+showTapeMachine (m, t) = show t ++ if hasHalted m then "" else showTransition m t
+    where showTransition m t = -}
 
-applyTransition :: Transition -> Tape Char -> Tape Char
-applyTransition t = moveHead t . Tape.write (Machine.write t)
+applyTransition :: Char -> Action -> Tape Char -> Tape Char
+applyTransition symbol action = moveHead action . Tape.write symbol
 
-moveHead :: Transition -> Tape a -> Tape a
-moveHead Transition {action = LEFT} = left
-moveHead Transition {action = RIGHT} = right
+moveHead :: Action -> Tape a -> Tape a
+moveHead LEFT = left
+moveHead RIGHT = right
 
 hasHalted :: Machine -> Bool
 hasHalted m = initial m `elem` finals m
@@ -51,14 +54,27 @@ data Machine = Machine
     , states        :: [String]
     , initial       :: String
     , finals        :: [String]
-    , transitions   :: [(String, [Transition])]
+    , transitions   :: [Transition]
     } deriving (Show)
 
-data Transition = Transition
-    { read      :: Char
-    , to_state  :: String
-    , write     :: Char
-    , action    :: Action
+type Transition = ((String, Char), (String, Char, Action))
+
+from_state :: Transition -> String
+read       :: Transition -> Char
+to_state   :: Transition -> String
+write      :: Transition -> Char
+-- action     :: Transition -> Action
+from_state ((f_s, _), _) = f_s
+read ((_, r), _) = r
+to_state (_, (t_s, _, _)) = t_s
+write (_, (_, w, _)) = w
+-- action (_, (_, _, a)) = a
+
+data JSONTransition = JSONTransition
+    { read_      :: Char    -- read
+    , to_state_  :: String    -- to_state
+    , write_     :: Char     -- write
+    , action_    :: Action    -- action
     } deriving (Show)
 
 data Action = LEFT | RIGHT
@@ -66,8 +82,8 @@ data Action = LEFT | RIGHT
 
 -- Parsing
 
-instance FromJSON Transition where
-    parseJSON (Object v) = Transition      <$>
+instance FromJSON JSONTransition where
+    parseJSON (Object v) = JSONTransition  <$>
                            v .: "read"     <*>
                            v .: "to_state" <*>
                            v .: "write"    <*>
@@ -82,15 +98,15 @@ instance FromJSON Machine where
                            v .: "states"    <*>
                            v .: "initial"   <*>
                            v .: "finals"    <*>
-                           lookupAndParse (withObject "transitions" (mapM parseTransition . extractTransition)) "transitions" v
+                           lookupAndParse (withObject "transitions" ((concatMapM parseTransition) . extractTransitions)) "transitions" v
     parseJSON _          = empty
 
-parseTransition :: (String, Value) -> Parser (String, [Transition])
-parseTransition (name, arr) = go arr >>= (\xs -> return (name, xs))
-    where go = withArray name (mapM parseJSON . V.toList)
+parseTransition :: (String, Value) -> Parser [Transition]
+parseTransition (name, arr) = fmap (\x -> ((name, read_ x), (to_state_ x, write_ x, action_ x))) <$> go arr
+    where go = withArray name (mapM parseJSON . V.toList) :: Value -> Parser [JSONTransition]
 
-extractTransition :: Object -> [(String, Value)]
-extractTransition = map (first unpack) . HM.toList
+extractTransitions :: Object -> [(String, Value)]
+extractTransitions = map (first unpack) . HM.toList
 
 parseAction :: Text -> Parser Action
 parseAction "LEFT"  = pure LEFT
@@ -108,10 +124,11 @@ checkMachine :: Machine -> Bool
 checkMachine m = blank m `elem` alphabet m
               && initial m `elem` states m
               && null (finals m \\ states m)
-              && all (\(s, ts) -> s `elem` states m && all (checkTransition m) ts) (transitions m)
+              && all (checkTransition m) (transitions m)
 
 checkTransition :: Machine -> Transition -> Bool
-checkTransition m t = Machine.read t  `elem` alphabet m
+checkTransition m t = from_state t `elem` states m
+                   && Machine.read t  `elem` alphabet m
                    && to_state t      `elem` states m
                    && Machine.write t `elem` alphabet m
 

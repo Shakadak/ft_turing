@@ -2,7 +2,7 @@ module Main where
 
 import Prelude hiding (read)
 import System.Environment
-import Tape
+import Tape (lift)
 import Machine
 import qualified Data.ByteString.Lazy.Char8 as B
 import Data.Aeson

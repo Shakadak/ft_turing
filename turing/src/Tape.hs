@@ -1,5 +1,5 @@
-module Tape (Tape, left, right, lift, read, write) where
-import Prelude hiding (read)
+module Tape (Tape, left, right, lift, head, write) where
+import Prelude hiding (read, head)
 
 data Tape a = Tape [a] a [a]
 
@@ -15,8 +15,8 @@ right (Tape ls h (r:rs)) = Tape (h:ls) r rs
 lift :: a -> [a] -> Tape a
 lift blank (h:as) = Tape (repeat blank) h (as ++ repeat blank)
 
-read :: Tape a -> a
-read (Tape _ a _) = a
+head :: Tape a -> a
+head (Tape _ a _) = a
 
 write :: a -> Tape a -> Tape a
 write a (Tape ls _ rs) = Tape ls a rs
