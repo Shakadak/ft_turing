@@ -4,6 +4,7 @@ import Prelude hiding (read)
 import System.Environment
 import Tape (lift)
 import Machine
+import Data.List (unfoldr)
 import qualified Data.ByteString.Lazy.Char8 as B
 import Data.Aeson
 
@@ -20,7 +21,7 @@ main = do
                            then Left "Invalid machine description"
                            else if not $ checkInput machine input
                            then Left "Invalid input compared to machine."
-                           else return . unlines $ [show machine, either id (show . snd) . loop $ pure (machine, lift (blank machine) input)]
+                           else return . unlines $ show machine : unfoldr (fmap compute) (return (machine, lift (blank machine) input))
            either putStrLn putStrLn res
 
 usage = "usage: ft_turing [-h] jsonfile input\n\

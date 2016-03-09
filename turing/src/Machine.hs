@@ -19,15 +19,22 @@ import Tape
 
 -- Data manipulation
 
+compute :: (Machine, Tape) -> (String, Maybe (Machine, Tape))
+compute (machine, tape) = (show tape ++ " " ++ trStr, next)
+    where tr = getTransition machine (head tape)
+          trStr = either (\x -> if ($ machine) hasHalted then "Halted: (" ++ initial machine ++ ")" else id x) (showTransition . (,) (initial machine, head tape)) tr
+          next = either (const Nothing) (\(nextState, symbol, action) -> Just (machine {initial = nextState}, applyTransition symbol action tape)) tr
+
 evaluateAtHead :: (Machine, Tape) -> Either String (Machine, Tape)
 evaluateAtHead (m, tape) = do
     (newState, symbol, action)  <- getTransition m (head tape)
     return (m {initial = newState}, applyTransition symbol action tape)
-        where getTransition machine symbol = maybeToEither ("Could not find matching transition for the pair (" ++ initial machine ++ ", " ++ [symbol] ++ ").") $ lookup (initial machine, symbol) (transitions machine)
-{-
-showTapeMachine :: (Machine, Tape) -> String
-showTapeMachine (m, t) = show t ++ if hasHalted m then "" else showTransition m t
-    where showTransition m t = -}
+
+getTransition :: Machine -> Char -> Either String (String, Char, Action)
+getTransition machine symbol = maybeToEither ("Could not find matching transition for the pair (" ++ initial machine ++ ", " ++ [symbol] ++ ").") $ lookup (initial machine, symbol) (transitions machine)
+
+showTapeTransition :: Transition -> Tape -> String
+showTapeTransition tr t = show t ++ " " ++ showTransition tr
 
 applyTransition :: Char -> Action -> Tape -> Tape
 applyTransition symbol action = moveHead action . Tape.write symbol
