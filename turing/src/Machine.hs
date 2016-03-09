@@ -1,4 +1,4 @@
-{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE OverloadedStrings, TypeSynonymInstances, FlexibleInstances #-}
 
 module Machine where
 
@@ -55,27 +55,42 @@ data Machine = Machine
     , initial       :: String
     , finals        :: [String]
     , transitions   :: [Transition]
-    } deriving (Show)
+    }
+
+instance Show Machine where
+    show machine = unlines $ [replicate 80 '*'
+                          , "*" ++ filler ++ nameMachine ++ filler ++ "*"
+                          , replicate 80 '*'
+                          , "Alphabet: [" ++ intercalate ", " (map show $ alphabet machine) ++ "]"
+                          , "States  : [" ++ intercalate ", " (states machine) ++ "]"
+                          , "Initial : " ++ initial machine
+                          , "Finals  : [" ++ intercalate ", " (finals machine) ++ "]"]
+                         ++ map showTransition (transitions machine)
+                         ++ [replicate 80 '*']
+                    where nameMachine = name machine ++ if length (name machine) `mod` 2 == 0 then "" else " "
+                          filler = replicate (39 - (length nameMachine `div` 2)) ' '
 
 type Transition = ((String, Char), (String, Char, Action))
+
+showTransition t = "(" ++ from_state t ++ ", " ++ [read t] ++ ") -> (" ++ to_state t ++ ", " ++ [Machine.write t] ++ ", " ++ show (action t) ++ ")"
 
 from_state :: Transition -> String
 read       :: Transition -> Char
 to_state   :: Transition -> String
 write      :: Transition -> Char
--- action     :: Transition -> Action
+action     :: Transition -> Action
 from_state ((f_s, _), _) = f_s
 read ((_, r), _) = r
 to_state (_, (t_s, _, _)) = t_s
 write (_, (_, w, _)) = w
--- action (_, (_, _, a)) = a
+action (_, (_, _, a)) = a
 
 data JSONTransition = JSONTransition
     { read_      :: Char    -- read
     , to_state_  :: String  -- to_state
     , write_     :: Char    -- write
     , action_    :: Action  -- action
-    } deriving (Show)
+    }
 
 data Action = LEFT | RIGHT
     deriving (Show, Eq)
