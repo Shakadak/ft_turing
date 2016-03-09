@@ -25,9 +25,9 @@ main = do
            either putStrLn putStrLn res
 
 usage = "usage: ft_turing [-h] jsonfile input\n\
-\positional arguments:\n\
-\  jsonfile              json description of the machine\n\
-\\n\
-\  input                 input of the machine\n\
-\optional arguments:\n\
-\  -h, --help            show this help message and exit\n"
+        \positional arguments:\n\
+        \  jsonfile              json description of the machine\n\
+        \\n\
+        \  input                 input of the machine\n\
+        \optional arguments:\n\
+        \  -h, --help            show this help message and exit\n"
