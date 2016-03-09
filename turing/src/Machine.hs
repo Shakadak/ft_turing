@@ -19,27 +19,27 @@ import Tape
 
 -- Data manipulation
 
-evaluateAtHead :: (Machine, Tape Char) -> Either String (Machine, Tape Char)
+evaluateAtHead :: (Machine, Tape) -> Either String (Machine, Tape)
 evaluateAtHead (m, tape) = do
     (newState, symbol, action)  <- getTransition m (head tape)
     return (m {initial = newState}, applyTransition symbol action tape)
         where getTransition machine symbol = maybeToEither ("Could not find matching transition for the pair (" ++ initial machine ++ ", " ++ [symbol] ++ ").") $ lookup (initial machine, symbol) (transitions machine)
 {-
-showTapeMachine :: (Machine, Tape Char) -> String
+showTapeMachine :: (Machine, Tape) -> String
 showTapeMachine (m, t) = show t ++ if hasHalted m then "" else showTransition m t
     where showTransition m t = -}
 
-applyTransition :: Char -> Action -> Tape Char -> Tape Char
+applyTransition :: Char -> Action -> Tape -> Tape
 applyTransition symbol action = moveHead action . Tape.write symbol
 
-moveHead :: Action -> Tape a -> Tape a
+moveHead :: Action -> Tape -> Tape
 moveHead LEFT = left
 moveHead RIGHT = right
 
 hasHalted :: Machine -> Bool
 hasHalted m = initial m `elem` finals m
 
-loop :: Either String (Machine, Tape Char) -> Either String (Machine, Tape Char)
+loop :: Either String (Machine, Tape) -> Either String (Machine, Tape)
 loop res@(Right(m, _))
     | hasHalted m = res
     | otherwise   = loop . evaluateAtHead =<< res

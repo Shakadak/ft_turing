@@ -1,22 +1,22 @@
 module Tape (Tape, left, right, lift, head, write) where
 import Prelude hiding (read, head)
 
-data Tape a = Tape [a] a [a]
+data Tape = Tape String Char String
 
-instance Show a => Show (Tape a) where
+instance Show Tape where
     show (Tape ls h rs) = show (l ++ h : r)
         where l = reverse $ take 40 ls
               r = take 39 rs
 
-left, right :: Tape a -> Tape a
+left, right :: Tape -> Tape
 left (Tape (l:ls) h rs)  = Tape ls l (h:rs)
 right (Tape ls h (r:rs)) = Tape (h:ls) r rs
 
-lift :: a -> [a] -> Tape a
+lift :: Char -> String -> Tape
 lift blank (h:as) = Tape (repeat blank) h (as ++ repeat blank)
 
-head :: Tape a -> a
+head :: Tape -> Char
 head (Tape _ a _) = a
 
-write :: a -> Tape a -> Tape a
+write :: Char -> Tape -> Tape
 write a (Tape ls _ rs) = Tape ls a rs
