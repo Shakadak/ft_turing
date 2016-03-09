@@ -4,7 +4,7 @@ import Prelude hiding (read, head)
 data Tape = Tape String Char String
 
 instance Show Tape where
-    show (Tape ls h rs) = show (l ++ h : r)
+    show (Tape ls h rs) =  "[" ++ l ++ "<" ++ [h] ++ ">" ++ r ++ "]"
         where l = reverse $ take 40 ls
               r = take 39 rs
 
