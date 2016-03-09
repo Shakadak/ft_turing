@@ -5,8 +5,8 @@ data Tape = Tape String Char String
 
 instance Show Tape where
     show (Tape ls h rs) =  "[" ++ l ++ "<" ++ [h] ++ ">" ++ r ++ "]"
-        where l = reverse $ take 40 ls
-              r = take 39 rs
+        where l = reverse $ take 38 ls
+              r = take 37 rs
 
 left, right :: Tape -> Tape
 left (Tape (l:ls) h rs)  = Tape ls l (h:rs)
