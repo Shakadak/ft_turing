@@ -20,8 +20,8 @@ main = do
                            then Left "Invalid machine description"
                            else if not $ checkInput machine input
                            then Left "Invalid input compared to machine."
-                           else loop $ pure (machine, lift (blank machine) input)
-           either putStrLn (print . snd) res
+                           else return . unlines $ [show machine, either id (show . snd) . loop $ pure (machine, lift (blank machine) input)]
+           either putStrLn putStrLn res
 
 usage = "usage: ft_turing [-h] jsonfile input\n\
 \positional arguments:\n\
