@@ -72,9 +72,9 @@ write (_, (_, w, _)) = w
 
 data JSONTransition = JSONTransition
     { read_      :: Char    -- read
-    , to_state_  :: String    -- to_state
-    , write_     :: Char     -- write
-    , action_    :: Action    -- action
+    , to_state_  :: String  -- to_state
+    , write_     :: Char    -- write
+    , action_    :: Action  -- action
     } deriving (Show)
 
 data Action = LEFT | RIGHT
@@ -98,7 +98,7 @@ instance FromJSON Machine where
                            v .: "states"    <*>
                            v .: "initial"   <*>
                            v .: "finals"    <*>
-                           lookupAndParse (withObject "transitions" ((concatMapM parseTransition) . extractTransitions)) "transitions" v
+                           lookupAndParse (withObject "transitions" (concatMapM parseTransition . extractTransitions)) "transitions" v
     parseJSON _          = empty
 
 parseTransition :: (String, Value) -> Parser [Transition]
