@@ -25,10 +25,10 @@ compute (machine, tape) = (show tape ++ " " ++ trStr, next)
           trStr = either (\x -> if ($ machine) hasHalted then "Halted: (" ++ initial machine ++ ")" else id x) (showTransition . (,) (initial machine, head tape)) tr
           next = either (const Nothing) (\(nextState, symbol, action) -> Just (machine {initial = nextState}, applyTransition symbol action tape)) tr
 
-evaluateAtHead :: (Machine, Tape) -> Either String (Machine, Tape)
+{- evaluateAtHead :: (Machine, Tape) -> Either String (Machine, Tape)
 evaluateAtHead (m, tape) = do
     (newState, symbol, action)  <- getTransition m (head tape)
-    return (m {initial = newState}, applyTransition symbol action tape)
+    return (m {initial = newState}, applyTransition symbol action tape) -}
 
 getTransition :: Machine -> Char -> Either String (String, Char, Action)
 getTransition machine symbol = maybeToEither ("Could not find matching transition for the pair (" ++ initial machine ++ ", " ++ [symbol] ++ ").") $ lookup (initial machine, symbol) (transitions machine)
@@ -46,11 +46,11 @@ moveHead RIGHT = right
 hasHalted :: Machine -> Bool
 hasHalted m = initial m `elem` finals m
 
-loop :: Either String (Machine, Tape) -> Either String (Machine, Tape)
+{- loop :: Either String (Machine, Tape) -> Either String (Machine, Tape)
 loop res@(Right(m, _))
     | hasHalted m = res
     | otherwise   = loop . evaluateAtHead =<< res
-loop res = res
+loop res = res -}
 
 -- Data definition
 
