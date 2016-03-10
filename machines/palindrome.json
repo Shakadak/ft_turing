@@ -1,0 +1,40 @@
+{
+    "name" : "palindrome",
+    "alphabet": [ "0", "1", ".", "y", "n" ],
+    "blank" : ".",
+    "states" : [ "scan_right", "scan_left_1", "scan_left_0", "skip_1", "skip_0", "start", "palindrome", "not_palindrome" ],
+    "initial" : "scan_right",
+    "finals" : [ "palindrome", "not_palindrome" ],
+    "transitions" : {
+        "scan_right": [
+            { "read" : ".", "to_state": "palindrome", "write": "y", "action": "RIGHT"},
+            { "read" : "1", "to_state": "skip_1", "write": ".", "action": "RIGHT"},
+            { "read" : "0", "to_state": "skip_0", "write": ".", "action": "RIGHT"}
+        ],
+        "scan_left_1": [
+            { "read" : "1", "to_state": "start", "write": ".", "action": "LEFT"},
+            { "read" : "0", "to_state": "not_palindrome" , "write": "n", "action": "RIGHT"},
+            { "read": ".", "to_state": "palindrome", "write": "y", "action": "RIGHT"}
+        ],
+        "scan_left_0": [
+            { "read" : "0", "to_state": "start", "write": ".", "action": "LEFT"},
+            { "read" : "1", "to_state": "not_palindrome" , "write": "n", "action": "RIGHT"},
+            { "read": ".", "to_state": "palindrome", "write": "y", "action": "RIGHT"}
+        ],
+        "skip_1": [
+            { "read" : "1", "to_state": "skip_1", "write": "1", "action": "RIGHT"},
+            { "read" : "0", "to_state": "skip_1", "write": "0", "action": "RIGHT"},
+            { "read" : ".", "to_state": "scan_left_1" , "write": ".", "action": "LEFT"}
+        ],
+        "skip_0": [
+            { "read" : "1", "to_state": "skip_0", "write": "1", "action": "RIGHT"},
+            { "read" : "0", "to_state": "skip_0", "write": "0", "action": "RIGHT"},
+            { "read" : ".", "to_state": "scan_left_0" , "write": ".", "action": "LEFT"}
+        ],
+        "start": [
+            { "read" : ".", "to_state": "scan_right", "write": ".", "action": "RIGHT"},
+            { "read" : "1", "to_state": "start", "write": "1", "action": "LEFT"},
+            { "read" : "0", "to_state": "start", "write": "0", "action": "LEFT"}
+        ]
+    }
+}
