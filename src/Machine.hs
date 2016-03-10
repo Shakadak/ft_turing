@@ -20,8 +20,8 @@ import Tape
 compute :: (Machine, Tape) -> (String, Maybe (Machine, Tape))
 compute (machine, tape) = (show tape ++ " " ++ trStr, next)
     where tr = getTransition machine (head tape)
-          trStr = either (\x -> if ($ machine) hasHalted {- Reads like a fine wine, though I do not like alcohol -} then "Halted: (" ++ initial machine ++ ")" else x) (showTransition . (,) (initial machine, head tape)) tr
-          next = either (const Nothing) (\(nextState, symbol, move) -> Just (machine {initial = nextState}, applyTransition symbol move tape)) tr
+          trStr = either (\ x -> if ($ machine) hasHalted {- Reads like a fine wine, though I do not like alcohol -} then "Halted: (" ++ initial machine ++ ")" else x) (showTransition . (,) (initial machine, head tape)) tr
+          next = either (const Nothing) (\ (nextState, symbol, move) -> Just (machine {initial = nextState}, applyTransition symbol move tape)) tr
 
 getTransition :: Machine -> Char -> Either String (String, Char, Action)
 getTransition machine symbol = maybeToEither err $ lookup (initial machine, symbol) (transitions machine)
@@ -110,7 +110,7 @@ instance FromJSON Machine where
     parseJSON _          = empty
 
 parseTransition :: (String, Value) -> Parser [Transition]
-parseTransition (state, arr) = fmap (\x -> ((state, read_ x), (to_state_ x, write_ x, action_ x))) <$> go arr
+parseTransition (state, arr) = fmap (\ x -> ((state, read_ x), (to_state_ x, write_ x, action_ x))) <$> go arr
     where go = withArray state (mapM parseJSON . V.toList) :: Value -> Parser [JSONTransition]
 
 extractTransitions :: Object -> [(String, Value)]
