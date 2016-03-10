@@ -26,7 +26,8 @@ compute (machine, tape) = (show tape ++ " " ++ trStr, next)
           next = either (const Nothing) (\(nextState, symbol, action) -> Just (machine {initial = nextState}, applyTransition symbol action tape)) tr
 
 getTransition :: Machine -> Char -> Either String (String, Char, Action)
-getTransition machine symbol = maybeToEither ("Could not find matching transition for the pair (" ++ initial machine ++ ", " ++ [symbol] ++ ").") $ lookup (initial machine, symbol) (transitions machine)
+getTransition machine symbol = maybeToEither err $ lookup (initial machine, symbol) (transitions machine)
+    where err = "Could not find matching transition for the pair (" ++ initial machine ++ ", " ++ [symbol] ++ ")."
 
 showTapeTransition :: Transition -> Tape -> String
 showTapeTransition tr t = show t ++ " " ++ showTransition tr
