@@ -64,7 +64,7 @@ instance Show Machine where
                           , "Finals  : [" ++ intercalate ", " (finals machine) ++ "]"]
                          ++ map showTransition (transitions machine)
                          ++ [replicate 80 '*']
-                    where nameMachine = name machine ++ if length (name machine) `mod` 2 == 0 then "" else " "
+                    where nameMachine = name machine ++ if even $ length (name machine) then "" else " "
                           filler = replicate (39 - (length nameMachine `div` 2)) ' '
 
 type Transition = ((String, Char), (String, Char, Action))
