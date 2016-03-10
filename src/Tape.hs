@@ -10,9 +10,9 @@ instance Show Tape where
 
 left, right :: Tape -> Tape
 left (Tape (l:ls) h rs)  = Tape ls l (h:rs)
-left (Tape [] _ _)       = error "Somehow managed to exhaust an infinite list"
+left (Tape [] _ _)       = error "Tape.left: Somehow managed to exhaust an infinite list"
 right (Tape ls h (r:rs)) = Tape (h:ls) r rs
-right (Tape _ _ [])      = error "Somehow managed to exhaust an infinite list"
+right (Tape _ _ [])      = error "Tape.right Somehow managed to exhaust an infinite list"
 
 lift :: Char -> String -> Tape
 lift blank (h:as) = Tape (repeat blank) h (as ++ repeat blank)
