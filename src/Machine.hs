@@ -7,12 +7,10 @@ import qualified Data.Vector as V (toList)
 import qualified Data.HashMap.Strict as HM (lookup, toList)
 import Data.Aeson
 import Data.Aeson.Types
-import Data.Maybe
 import Data.List hiding (head)
 import Data.Text (Text, unpack)
 import Control.Applicative
 import Control.Arrow (first)
-import Control.Monad
 import Utilities
 
 import Tape
@@ -23,7 +21,7 @@ compute :: (Machine, Tape) -> (String, Maybe (Machine, Tape))
 compute (machine, tape) = (show tape ++ " " ++ trStr, next)
     where tr = getTransition machine (head tape)
           trStr = either (\x -> if ($ machine) hasHalted {- Reads like a fine wine, though I do not like alcohol -} then "Halted: (" ++ initial machine ++ ")" else x) (showTransition . (,) (initial machine, head tape)) tr
-          next = either (const Nothing) (\(nextState, symbol, action) -> Just (machine {initial = nextState}, applyTransition symbol action tape)) tr
+          next = either (const Nothing) (\(nextState, symbol, move) -> Just (machine {initial = nextState}, applyTransition symbol move tape)) tr
 
 getTransition :: Machine -> Char -> Either String (String, Char, Action)
 getTransition machine symbol = maybeToEither err $ lookup (initial machine, symbol) (transitions machine)
@@ -33,7 +31,7 @@ showTapeTransition :: Transition -> Tape -> String
 showTapeTransition tr t = show t ++ " " ++ showTransition tr
 
 applyTransition :: Char -> Action -> Tape -> Tape
-applyTransition symbol action = moveHead action . Tape.write symbol
+applyTransition c a = moveHead a . Tape.write c
 
 moveHead :: Action -> Tape -> Tape
 moveHead LEFT = left
@@ -69,6 +67,7 @@ instance Show Machine where
 
 type Transition = ((String, Char), (String, Char, Action))
 
+showTransition :: Transition -> String
 showTransition t = "(" ++ from_state t ++ ", " ++ [read t] ++ ") -> (" ++ to_state t ++ ", " ++ [Machine.write t] ++ ", " ++ show (action t) ++ ")"
 
 from_state :: Transition -> String
@@ -114,8 +113,8 @@ instance FromJSON Machine where
     parseJSON _          = empty
 
 parseTransition :: (String, Value) -> Parser [Transition]
-parseTransition (name, arr) = fmap (\x -> ((name, read_ x), (to_state_ x, write_ x, action_ x))) <$> go arr
-    where go = withArray name (mapM parseJSON . V.toList) :: Value -> Parser [JSONTransition]
+parseTransition (state, arr) = fmap (\x -> ((state, read_ x), (to_state_ x, write_ x, action_ x))) <$> go arr
+    where go = withArray state (mapM parseJSON . V.toList) :: Value -> Parser [JSONTransition]
 
 extractTransitions :: Object -> [(String, Value)]
 extractTransitions = map (first unpack) . HM.toList

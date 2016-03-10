@@ -24,6 +24,7 @@ main = do
                            else return $ show machine ++ unlines (unfoldr (fmap compute) (return (machine, lift (blank machine) input)))
            either putStrLn putStrLn res
 
+usage :: String
 usage = "usage: ft_turing [-h] jsonfile input\n\
         \positional arguments:\n\
         \  jsonfile              json description of the machine\n\
