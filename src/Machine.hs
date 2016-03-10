@@ -1,6 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module Machine where
+module Machine (Machine(..), compute, checkMachine, checkInput) where
 
 import Prelude hiding (read, head)
 import qualified Data.Vector as V (toList)
@@ -26,9 +26,6 @@ compute (machine, tape) = (show tape ++ " " ++ trStr, next)
 getTransition :: Machine -> Char -> Either String (String, Char, Action)
 getTransition machine symbol = maybeToEither err $ lookup (initial machine, symbol) (transitions machine)
     where err = "Could not find matching transition for the pair (" ++ initial machine ++ ", " ++ [symbol] ++ ")."
-
-showTapeTransition :: Transition -> Tape -> String
-showTapeTransition tr t = show t ++ " " ++ showTransition tr
 
 applyTransition :: Char -> Action -> Tape -> Tape
 applyTransition c a = moveHead a . Tape.write c
