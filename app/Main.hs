@@ -5,7 +5,8 @@ import System.Environment
 import Tape (lift)
 import Machine
 import Data.List (unfoldr)
-import qualified Data.ByteString.Lazy.Char8 as B
+import Data.Text.Encoding (encodeUtf8)
+import Data.Text (pack)
 import Data.Aeson
 
 main :: IO ()
@@ -16,7 +17,7 @@ main = do
        else do
            content <- readFile (head args)
            let input = args!!1
-           let res = do machine <- eitherDecode' $ B.pack content :: Either String Machine
+           let res = do machine <- eitherDecodeStrict . encodeUtf8 . pack $ content :: Either String Machine
                         if not $ checkMachine machine
                            then Left "Invalid machine description"
                            else if not $ checkInput machine input
