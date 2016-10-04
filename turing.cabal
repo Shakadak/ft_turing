@@ -19,7 +19,7 @@ library
                      , Machine
   other-modules:       Utilities
   ghc-options:         -threaded -rtsopts -with-rtsopts=-N -Wall
-  build-depends:       base >= 4.7 && < 5
+  build-depends:       base
                      , vector
                      , unordered-containers
                      , text
