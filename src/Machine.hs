@@ -53,7 +53,7 @@ instance Show Machine where
     show machine = unlines $ [replicate 80 '*'
                           , "*" ++ filler ++ nameMachine ++ filler ++ "*"
                           , replicate 80 '*'
-                          , "Alphabet: [" ++ intercalate ", " (map show $ alphabet machine) ++ "]"
+                          , "Alphabet: [" ++ intercalate ", " (map (:[]) $ alphabet machine) ++ "]"
                           , "States  : [" ++ intercalate ", " (states machine) ++ "]"
                           , "Initial : " ++ initial machine
                           , "Finals  : [" ++ intercalate ", " (finals machine) ++ "]"]
